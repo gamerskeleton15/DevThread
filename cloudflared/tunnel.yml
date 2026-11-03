@@ -1,0 +1,36 @@
+# DevThread — Cloudflare Tunnel configuration
+#
+# Cloudflare Tunnel connects your app to the Cloudflare network without
+# opening inbound firewall ports. It's a reverse proxy: traffic to your
+# tunnel's hostname flows through this local service.
+#
+# Setup:
+#   1. cloudflared login
+#   2. cloudflared tunnel create devthread
+#   3. npm run tunnel:deploy   (writes this file and applies config)
+#   4. npm run tunnel:run      (or: npm run dev + npm run tunnel:run)
+#   5. npm run tunnel:route    (optional — point a custom domain at the tunnel)
+#
+# See docs/runbooks/cloudflared.md for the full runbook.
+
+tunnel: devthread
+
+# Credentials file written by `cloudflared tunnel create devthread`.
+# On Windows this is typically C:\Users\<you>\.cloudflared\creds-devthread.json.
+# Omit this line to let cloudflared use its default location automatically.
+credentials-file: ~/.cloudflared/creds-devthread.json
+
+ingress:
+  # Local Next.js dev server (npm run dev)
+  - hostname: devthread.local
+    service: http://localhost:3000
+
+  # Local production server (npm run start)
+  - hostname: devthread.prod.local
+    service: http://localhost:3000
+
+  # Catch-all for the tunnel (required — any hostname not matched above)
+  - service: status:404
+
+# Optional: log to a file instead of stdout
+# log: /var/log/cloudflared/devthread.log
