@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { createPost, WriteState } from '@/app/write/actions';
+import { createPost } from '@/app/write/actions';
 
 /**
  * Create (and, when `initialPost` is passed, edit) a post. Editing posts a
@@ -22,16 +22,15 @@ export default function WriteForm({
     content: string;
   };
 }) {
-  const [state, formAction, pending] = useActionState<WriteState, FormData>(
-    createPost,
-    {}
-  );
-
   const editing = Boolean(initialPost);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState(false);
   const [imageError, setImageError] = useState('');
+  const [formError, setFormError] = useState('');
 
   async function handleInsertImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -68,6 +67,46 @@ export default function WriteForm({
     }
   }
 
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPending(true);
+    setFormError('');
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      // Handle the cover image upload first if a new one is selected
+      const coverFile = coverInputRef.current?.files?.[0];
+      if (coverFile) {
+        const fd = new FormData();
+        fd.append('file', coverFile);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        
+        if (!res.ok || !data.url) {
+          throw new Error(data.error || 'Cover image upload failed.');
+        }
+        
+        // Remove the local file from formData and add the Cloudinary URL
+        formData.delete('cover');
+        formData.append('coverImage', data.url);
+      } else if (editing && initialPost?.coverImage) {
+        formData.append('coverImage', initialPost.coverImage);
+      }
+
+      // Now call the server action with the updated form data
+      const result = await createPost({}, formData);
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save post.');
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -89,10 +128,10 @@ export default function WriteForm({
             </p>
           </header>
 
-          <form action={formAction} className="space-y-5">
-            {state.error && (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {formError && (
               <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                {state.error}
+                {formError}
               </div>
             )}
 
@@ -139,6 +178,7 @@ export default function WriteForm({
                 </span>
               </label>
               <input
+                ref={coverInputRef}
                 type="file"
                 id="cover"
                 name="cover"
