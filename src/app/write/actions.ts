@@ -7,7 +7,6 @@ import slugify from 'slugify';
 import { getSessionUser } from '@/lib/auth';
 import { deletePostBySlug, selectPostBySlug, upsertPost } from '@/db/queries';
 import { getAllPostIds, getSortedPostsData } from '@/lib/posts';
-import { saveUploadedFile } from '@/lib/uploads';
 
 export interface WriteState {
   error?: string;
@@ -62,16 +61,10 @@ export async function createPost(
     }
   }
 
-  // Optional cover image from the form's file input. On edit, keep the
-  // existing image unless a new one is uploaded.
-  let coverImage = existing?.coverImage ?? '';
-  const cover = formData.get('cover');
-  if (cover instanceof File && cover.size > 0) {
-    try {
-      coverImage = await saveUploadedFile(cover, 'covers');
-    } catch (err) {
-      return { error: err instanceof Error ? err.message : 'Cover upload failed.' };
-    }
+  // Handle the Cloudinary coverImage URL string instead of local File uploads
+  let coverImage = String(formData.get('coverImage') ?? '').trim();
+  if (!coverImage && existing) {
+    coverImage = existing.coverImage;
   }
 
   const slug = existing?.slug ?? (await makeSlug(title, existingSlugs));
