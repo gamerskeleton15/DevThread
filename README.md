@@ -27,7 +27,7 @@ layer (accounts, writing, contact, newsletter) talks to Postgres.
 
 ### Prerequisites
 - Node.js 18.0.0 or later
-- npm package manager
+- npm package managers
 
 ### Installation
 ```bash
