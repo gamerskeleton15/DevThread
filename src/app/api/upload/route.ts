@@ -1,32 +1,36 @@
+import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth';
-import { saveUploadedFile } from '@/lib/uploads';
 
-export const runtime = 'nodejs';
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-/**
- * Accepts a single `file` (multipart/form-data) and stores it under
- * `public/uploads/inline/`. Returns the public URL so the client can insert
- * `![alt](/uploads/inline/…)` into the markdown body.
- * Requires an authenticated session.
- */
 export async function POST(request: Request) {
-  const user = await getSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
-  }
-
-  let url: string;
   try {
-    const fd = await request.formData();
-    const file = fd.get('file');
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No file provided.' }, { status: 400 });
+    const data = await request.formData();
+    const file: File | null = data.get('file') as unknown as File;
+
+    if (!file) {
+      return NextResponse.json({ success: false, message: 'No file uploaded' }, { status: 400 });
     }
-    url = await saveUploadedFile(file, 'inline');
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Upload failed.';
-    return NextResponse.json({ error: message }, { status: 400 });
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const uploadResponse: any = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: 'devthread_covers' },
+        (error, result) => {
+          if (error) reject(error);
+          resolve(result);
+        }
+      ).end(buffer);
+    });
+
+    return NextResponse.json({ success: true, url: uploadResponse.secure_url });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
-  return NextResponse.json({ url });
 }
