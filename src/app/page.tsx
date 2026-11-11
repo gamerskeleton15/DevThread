@@ -5,16 +5,23 @@ import NewsletterForm from '@/components/NewsletterForm';
 import AdSlot from '@/components/AdSlot';
 import ThreadCard from '@/components/ThreadCard';
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://devthread.site';
+
 export const metadata: Metadata = {
-  title: 'DevThread - Where engineers share what they\'ve learned',
+  title: "DevThread - Where engineers share what they've learned",
   description:
     'Practical threads from working engineers: backend, platform, and ML. No fluff, no hype — just hard-won knowledge you can apply today.',
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
     title: 'DevThread',
     description:
       'Practical threads from working engineers. No fluff, no hype — just hard-won knowledge you can apply today.',
     type: 'website',
     siteName: 'DevThread',
+    url: SITE_URL,
   },
   twitter: {
     card: 'summary_large_image',
@@ -45,7 +52,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header — no hero banner, just the publication intro */}
+        {/* Header — publication intro */}
         <header className="mb-10">
           <Link href="/" className="font-display text-3xl font-bold text-foreground tracking-tight">
             Dev<span className="text-accent">Thread</span>
@@ -97,18 +104,18 @@ export default async function Home() {
               <AdSlot className="w-full" />
             </div>
 
-            {/* Weekly roundup CTA */}
+            {/* Weekly roundup CTA — Optimized for devthread.site */}
             <section className="mt-16 bg-surface border border-border rounded-2xl p-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div>
                   <p className="text-sm font-medium text-accent uppercase tracking-wider mb-1">
-                    Weekly Thread Roundup
+                    Engineering Blueprints & Updates
                   </p>
                   <h2 className="font-display text-2xl font-bold text-foreground">
-                    The best threads of the week, distilled.
+                    Get high-intent dev tutorials directly in your inbox.
                   </h2>
-                  <p className="mt-2 text-muted max-w-xl">
-                    One actionable thread per day, five days a week. No filler.
+                  <p className="mt-2 text-muted max-w-xl text-sm">
+                    Weekly breakdowns on Next.js 16 optimizations, PostgreSQL schema migrations, and self-hosted n8n automation blueprints. Zero fluff.
                   </p>
                 </div>
                 <NewsletterForm />
@@ -160,7 +167,7 @@ export default async function Home() {
                   Write for DevThread
                 </h3>
                 <p className="text-sm text-muted mb-4">
-                  Got a hard-won lesson from the trenches? We publish it.
+                  Got a hard-won lesson from the trenches? Share your technical tutorial with our community.
                 </p>
                 <Link
                   href="/write"
