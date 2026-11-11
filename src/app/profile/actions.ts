@@ -1,59 +1,36 @@
 'use server';
 
+import { v2 as cloudinary } from 'cloudinary';
+import { updateProfileInDb } from '@/db/queries'; // Adjust to your actual DB query helper
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { getSessionUser } from '@/lib/auth';
-import { updateUserProfile } from '@/db/queries';
-import { saveUploadedFile } from '@/lib/uploads';
 
-export interface ProfileState {
-  error?: string;
-  success?: boolean;
-}
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-/**
- * Update the current user's display name and/or avatar image. Returns error
- * state on validation failure; revalidates so the navbar reflects changes.
- */
-export async function updateProfile(
-  _prevState: ProfileState,
-  formData: FormData
-): Promise<ProfileState> {
-  const user = await getSessionUser();
-  if (!user) {
-    redirect('/login');
-  }
-
+export async function updateProfile(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim();
-  const avatarFile = formData.get('avatar');
+  const file = formData.get('avatar') as File | null;
+  let avatarUrl: string | undefined;
 
-  if (name && name.length > 40) {
-    return { error: 'Display name must be 40 characters or fewer.' };
+  // Upload avatar to Cloudinary if a new file was selected
+  if (file && file.size > 0) {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64Data = `data:${file.type};base64,${buffer.toString('base64')}`;
+
+    const uploadResult = await cloudinary.uploader.upload(base64Data, {
+      folder: 'devthread_avatars',
+    });
+
+    avatarUrl = uploadResult.secure_url;
   }
 
-  let avatar: string | undefined;
-  if (avatarFile instanceof File && avatarFile.size > 0) {
-    try {
-      avatar = await saveUploadedFile(avatarFile, 'avatars');
-    } catch (err) {
-      return { error: err instanceof Error ? err.message : 'Avatar upload failed.' };
-    }
-  }
+  // Update Postgres database record with new name and Cloudinary avatar URL
+  await updateProfileInDb({ name, avatar: avatarUrl });
 
-  // Reflect the anonymous default name only when the user actually cleared
-  // the field. When only an avatar is uploaded, keep the existing name so a
-  // profile update can't silently wipe a display name.
-  const clearedName = !name;
-  const nextName = clearedName ? (user.name || user.email.split('@')[0]) : name;
-
-  const { ok } = await updateUserProfile(user.id, {
-    name: nextName,
-    ...(avatar ? { avatar } : {}),
-  });
-  if (!ok) {
-    return { error: 'Could not save your profile right now. Please try again.' };
-  }
-
-  revalidatePath('/', 'layout');
+  revalidatePath('/profile');
   return { success: true };
 }
