@@ -174,4 +174,22 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+     <url>
+     <loc>https://devthread.site/blog/how-to-build-a-custom-instagram-auto-responder-using-self-hosted-n8n-and-meta-webhooks</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+     <url>
+     <loc>https://devthread.site/blog/supabase-vs-firebase-the-ultimate-postgresql-migration-guide-for-nextjs-developers</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+     <url>
+     <loc>https://devthread.site/blog/optimizing-react-server-components-and-tailwind-css-in-nextjs-16</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
 </urlset>
