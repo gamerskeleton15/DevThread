@@ -1,36 +1,70 @@
 'use server';
 
-import { v2 as cloudinary } from 'cloudinary';
-import { updateProfileInDb } from '@/db/queries'; // Adjust to your actual DB query helper
 import { revalidatePath } from 'next/cache';
+import { getSessionUser } from '@/lib/auth';
+import { updateUserProfile } from '@/db/queries';
 
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+async function signCloudinaryUpload(params: Record<string, string>, apiSecret: string): Promise<string> {
+  const payload =
+    Object.keys(params)
+      .sort()
+      .map((key) => `${key}=${params[key]}`)
+      .join('&') + apiSecret;
 
-export async function updateProfile(formData: FormData) {
-  const name = String(formData.get('name') ?? '').trim();
-  const file = formData.get('avatar') as File | null;
-  let avatarUrl: string | undefined;
+  const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(payload));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
-  // Upload avatar to Cloudinary if a new file was selected
-  if (file && file.size > 0) {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64Data = `data:${file.type};base64,${buffer.toString('base64')}`;
-
-    const uploadResult = await cloudinary.uploader.upload(base64Data, {
-      folder: 'devthread_avatars',
-    });
-
-    avatarUrl = uploadResult.secure_url;
+export async function updateProfile(arg1: FormData | unknown, arg2?: FormData) {
+  const formData = arg1 instanceof FormData ? arg1 : arg2;
+  if (!formData) {
+    return { error: 'Invalid form submission.' };
   }
 
-  // Update Postgres database record with new name and Cloudinary avatar URL
-  await updateProfileInDb({ name, avatar: avatarUrl });
+  const user = await getSessionUser();
+  if (!user) {
+    return { error: 'You must be logged in to update your profile.' };
+  }
+
+  const name = String(formData.get('name') ?? '').trim() || user.name;
+  const file = formData.get('avatar') as File | null;
+  let avatarUrl = user.avatar;
+
+  if (file && file.size > 0) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+    const apiKey = process.env.CLOUDINARY_API_KEY!;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET!;
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const folder = 'devthread_avatars';
+
+    const signature = await signCloudinaryUpload({ folder, timestamp }, apiSecret);
+
+    const uploadBody = new FormData();
+    uploadBody.append('file', file);
+    uploadBody.append('api_key', apiKey);
+    uploadBody.append('timestamp', timestamp);
+    uploadBody.append('folder', folder);
+    uploadBody.append('signature', signature);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: uploadBody,
+    });
+
+    if (!res.ok) {
+      return { error: 'Avatar upload to Cloudinary failed.' };
+    }
+
+    const data = (await res.json()) as { secure_url: string };
+    avatarUrl = data.secure_url;
+  }
+
+  // Verify the argument order of updateUserProfile in src/db/queries.ts
+  await updateUserProfile(user.id, name, avatarUrl);
 
   revalidatePath('/profile');
+  revalidatePath('/');
   return { success: true };
 }
