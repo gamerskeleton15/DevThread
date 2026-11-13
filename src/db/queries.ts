@@ -1,237 +1,110 @@
-import { getDb } from './index';
+'use server';
 
-/** Row shapes (camelCase maps from snake_case columns). */
+import { revalidatePath } from 'next/cache';
+import { getSessionUser } from '@/lib/auth';
+import { updateUserProfile } from '@/db/queries';
 
-export interface UserRow {
-  id: string;
-  email: string;
-  name: string;
-  salt: string;
-  hash: string;
-  avatar: string | null;
-  createdAt: string;
+export interface ProfileState {
+  error?: string;
+  success?: boolean;
 }
 
-export interface SessionRow {
-  tokenHash: string;
-  userId: string;
-  expiresAt: number;
+async function signCloudinaryUpload(
+  params: Record<string, string>,
+  apiSecret: string
+): Promise<string> {
+  const payload =
+    Object.keys(params)
+      .sort()
+      .map((key) => `${key}=${params[key]}`)
+      .join('&') + apiSecret;
+
+  const digest = await crypto.subtle.digest(
+    'SHA-1',
+    new TextEncoder().encode(payload)
+  );
+
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
-export interface PostRow {
-  slug: string;
-  title: string;
-  date: string;
-  description: string;
-  author: string;
-  authorId: string | null;
-  category: string;
-  tags: string[];
-  coverImage: string;
-  rawMarkdown: string;
-}
-
-export interface MessageRow {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  createdAt: string;
-}
-
-export interface SubscriberRow {
-  email: string;
-  createdAt: string;
-}
-
-/* ---------------------------------- users --------------------------------- */
-
-/** All users. Returns [] only when DB is not configured; throws on query error. */
-export async function selectAllUsers(): Promise<UserRow[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db<UserRow[]>`
-    SELECT id, email, name, salt, hash, avatar, created_at
-    FROM users
-  `;
-}
-
-/** Find by email. Returns undefined only when DB is not configured or row absent; throws on query error. */
-export async function selectUserByEmail(email: string): Promise<UserRow | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const rows = await db<UserRow[]>`
-    SELECT id, email, name, salt, hash, avatar, created_at
-    FROM users WHERE email = ${email}
-  `;
-  return rows[0];
-}
-
-/** Find by id. Returns undefined only when DB is not configured or row absent; throws on query error. */
-export async function selectUserById(id: string): Promise<UserRow | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const rows = await db<UserRow[]>`
-    SELECT id, email, name, salt, hash, avatar, created_at
-    FROM users WHERE id = ${id}
-  `;
-  return rows[0];
-}
-
-/** Insert a new user. Throws on DB error; returns {ok:false} only when DB is not configured. */
-export async function insertUser(
-  u: Omit<UserRow, 'avatar'> & { avatar?: string | null }
-): Promise<{ ok: boolean }> {
-  const db = await getDb();
-  if (!db) return { ok: false };
-  await db`
-    INSERT INTO users (id, email, name, salt, hash, avatar, created_at)
-    VALUES (${u.id}, ${u.email}, ${u.name}, ${u.salt}, ${u.hash}, ${u.avatar ?? null}, ${u.createdAt})
-  `;
-  return { ok: true };
-}
-
-/** Update display name and optionally avatar for a user. Throws on DB error; returns {ok:false} only when DB is not configured. */
-export async function updateUserProfile(
-  userId: string,
-  patch: { name: string; avatar?: string }
-): Promise<{ ok: boolean }> {
-  const db = await getDb();
-  if (!db) return { ok: false };
-  if (patch.avatar) {
-    await db`
-      UPDATE users SET name = ${patch.name}, avatar = ${patch.avatar}
-      WHERE id = ${userId}
-    `;
-  } else {
-    await db`
-      UPDATE users SET name = ${patch.name}
-      WHERE id = ${userId}
-    `;
+export async function updateProfile(
+  arg1: ProfileState | FormData,
+  arg2?: FormData
+): Promise<ProfileState> {
+  const formData = arg1 instanceof FormData ? arg1 : arg2;
+  if (!formData) {
+    return { error: 'Invalid form submission.' };
   }
-  return { ok: true };
-}
 
-/* -------------------------------- sessions -------------------------------- */
+  const user = await getSessionUser();
+  if (!user) {
+    return { error: 'You must be logged in to update your profile.' };
+  }
 
-/** Insert a session record. Throws on DB error; no-op when DB is not configured. */
-export async function insertSession(s: SessionRow): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db`
-    INSERT INTO sessions (token_hash, user_id, expires_at)
-    VALUES (${s.tokenHash}, ${s.userId}, ${s.expiresAt})
-  `;
-}
+  const name = String(formData.get('name') ?? '').trim();
+  if (!name) {
+    return { error: 'Display name cannot be empty.' };
+  }
 
-/** Remove sessions for a user that are already expired (housekeeping). Throws on DB error; no-op when DB is not configured. */
-export async function deleteExpiredSessions(now: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db`DELETE FROM sessions WHERE expires_at < ${now}`;
-}
+  const file = formData.get('avatar') as File | null;
+  let uploadedAvatarUrl: string | undefined;
 
-/** Delete a specific session by token hash. Throws on DB error; no-op when DB is not configured. */
-export async function deleteSessionByTokenHash(tokenHash: string): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db`DELETE FROM sessions WHERE token_hash = ${tokenHash}`;
-}
+  if (file && file.size > 0) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-/** Look up a session by token hash. Returns undefined only when DB is not configured or row absent; throws on query error. */
-export async function selectSessionByTokenHash(
-  tokenHash: string
-): Promise<SessionRow | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const rows = await db<SessionRow[]>`
-    SELECT token_hash, user_id, expires_at FROM sessions
-    WHERE token_hash = ${tokenHash}
-  `;
-  return rows[0];
-}
+    if (!cloudName || !apiKey || !apiSecret) {
+      return { error: 'Cloudinary environment variables are not configured.' };
+    }
 
-/* ---------------------------------- posts --------------------------------- */
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const folder = 'devthread_avatars';
+    const signature = await signCloudinaryUpload({ folder, timestamp }, apiSecret);
 
-/** All user-published posts, newest first. Returns [] only when DB is not configured; throws on query error. */
-export async function selectAllPosts(): Promise<PostRow[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db<PostRow[]>`
-    SELECT slug, title, date, description, author, author_id, category,
-           tags, cover_image, raw_markdown
-    FROM posts
-    ORDER BY date DESC
-  `;
-}
+    const fileBlob = new Blob([await file.arrayBuffer()], {
+      type: file.type || 'application/octet-stream',
+    });
 
-/** A single user post by slug. Returns undefined only when DB is not configured or row absent; throws on query error. */
-export async function selectPostBySlug(slug: string): Promise<PostRow | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const rows = await db<PostRow[]>`
-    SELECT slug, title, date, description, author, author_id, category,
-           tags, cover_image, raw_markdown
-    FROM posts WHERE slug = ${slug}
-  `;
-  return rows[0];
-}
+    const uploadBody = new FormData();
+    uploadBody.append('file', fileBlob, file.name || 'avatar.png');
+    uploadBody.append('api_key', apiKey);
+    uploadBody.append('timestamp', timestamp);
+    uploadBody.append('folder', folder);
+    uploadBody.append('signature', signature);
 
-/** Insert or replace a user post (atomic upsert on the slug primary key). Throws on DB error; returns {ok:false} only when DB is not configured. */
-export async function upsertPost(p: PostRow): Promise<{ ok: boolean }> {
-  const db = await getDb();
-  if (!db) return { ok: false };
-  await db`
-    INSERT INTO posts (slug, title, date, description, author, author_id,
-                       category, tags, cover_image, raw_markdown)
-    VALUES (${p.slug}, ${p.title}, ${p.date}, ${p.description}, ${p.author},
-            ${p.authorId}, ${p.category}, ${JSON.stringify(p.tags)}, ${p.coverImage},
-            ${p.rawMarkdown})
-    ON CONFLICT (slug) DO UPDATE SET
-      title = EXCLUDED.title,
-      date = EXCLUDED.date,
-      description = EXCLUDED.description,
-      author = EXCLUDED.author,
-      author_id = EXCLUDED.author_id,
-      category = EXCLUDED.category,
-      tags = EXCLUDED.tags,
-      cover_image = EXCLUDED.cover_image,
-      raw_markdown = EXCLUDED.raw_markdown
-  `;
-  return { ok: true };
-}
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: uploadBody,
+      }
+    );
 
-/** Delete a user post by slug. Throws on DB error; returns {ok:false} only when DB is not configured. */
-export async function deletePostBySlug(slug: string): Promise<{ ok: boolean }> {
-  const db = await getDb();
-  if (!db) return { ok: false };
-  await db`DELETE FROM posts WHERE slug = ${slug}`;
-  return { ok: true };
-}
+    if (!res.ok) {
+      return { error: 'Failed to upload avatar image to Cloudinary.' };
+    }
 
-/* -------------------------------- messages -------------------------------- */
+    const data = (await res.json()) as { secure_url?: string };
+    if (!data.secure_url) {
+      return { error: 'Cloudinary did not return an image URL.' };
+    }
 
-/** Insert a contact message. Throws on DB error; returns {ok:false} only when DB is not configured. */
-export async function insertMessage(m: MessageRow): Promise<{ ok: boolean }> {
-  const db = await getDb();
-  if (!db) return { ok: false };
-  await db`
-    INSERT INTO messages (id, name, email, subject, message, created_at)
-    VALUES (${m.id}, ${m.name}, ${m.email}, ${m.subject}, ${m.message}, ${m.createdAt})
-  `;
-  return { ok: true };
-}
+    uploadedAvatarUrl = data.secure_url;
+  }
 
-/* ------------------------------- subscribers ------------------------------ */
+  const { ok } = await updateUserProfile(user.id, {
+    name,
+    ...(uploadedAvatarUrl ? { avatar: uploadedAvatarUrl } : {}),
+  });
 
-/** Add a subscriber; duplicates are ignored (email is the primary key). Throws on DB error; returns {ok:false} only when DB is not configured. */
-export async function insertSubscriber(email: string, createdAt: string): Promise<{ ok: boolean }> {
-  const db = await getDb();
-  if (!db) return { ok: false };
-  await db`
-    INSERT INTO subscribers (email, created_at) VALUES (${email}, ${createdAt})
-    ON CONFLICT (email) DO NOTHING
-  `;
-  return { ok: true };
+  if (!ok) {
+    return { error: 'Database is not configured.' };
+  }
+
+  revalidatePath('/profile');
+  revalidatePath('/');
+  return { success: true };
 }
