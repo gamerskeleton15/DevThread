@@ -22,6 +22,8 @@ export interface PostData {
   takeaway?: string;
   /** Author user id, present only for user-submitted posts (profile listing). */
   authorId?: string;
+  /** Raw markdown body used by ThreadCard to calculate accurate read times. */
+  rawMarkdown?: string;
 }
 
 export interface PostContent extends PostData {
@@ -62,7 +64,9 @@ function readMdxPostData(): PostData[] {
       const matterResult = matter(fileContents);
       return {
         id,
-        ...(matterResult.data as Omit<PostData, 'id'>),
+        slug: id,
+        rawMarkdown: matterResult.content,
+        ...(matterResult.data as Omit<PostData, 'id' | 'rawMarkdown'>),
       };
     });
 }
@@ -116,6 +120,7 @@ export async function getUserPosts(): Promise<PostData[]> {
     tags: normalizeTags(row.tags),
     coverImage: row.coverImage,
     authorId: row.authorId ?? undefined,
+    rawMarkdown: row.rawMarkdown,
   }));
 }
 
@@ -155,6 +160,7 @@ export async function getPostData(slug: string): Promise<PostContent> {
       slug,
       contentHtml: sanitizePostHtml(processedContent.toString()),
       takeaway: matterResult.data.takeaway,
+      rawMarkdown: matterResult.content,
       ...(matterResult.data as Omit<PostContent, 'slug' | 'contentHtml' | 'isUserContent' | 'takeaway'>),
     };
   }
@@ -176,6 +182,7 @@ export async function getPostData(slug: string): Promise<PostContent> {
       contentHtml: sanitizePostHtml(processedContent.toString()),
       isUserContent: true,
       authorId: row.authorId ?? undefined,
+      rawMarkdown: row.rawMarkdown,
     };
   }
 
