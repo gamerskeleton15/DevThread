@@ -6,9 +6,23 @@ interface ThreadCardProps {
   post: PostData;
 }
 
-/** Approximate read time based on word count (~200 wpm). */
-function readTime(text: string): number {
-  const words = text.trim().split(/\s+/).length;
+type ExtendedPostData = PostData & {
+  image?: string;
+  coverImage?: string;
+  contentHtml?: string;
+  rawMarkdown?: string;
+  content?: string;
+  readingTime?: number;
+};
+
+/** Approximate read time based on plain-text word count (~200 wpm). */
+function readTime(rawText: string): number {
+  const plainText = rawText
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/[#>*_~`[\]()!-]/g, ' ')
+    .trim();
+  if (!plainText) return 1;
+  const words = plainText.split(/\s+/).length;
   return Math.max(1, Math.round(words / 200));
 }
 
@@ -23,6 +37,7 @@ function initials(name: string): string {
 }
 
 export default function ThreadCard({ post }: ThreadCardProps) {
+  const extendedPost = post as ExtendedPostData;
   const authorInitial = initials(post.author || 'DevThread');
   const dateLabel = new Date(post.date).toLocaleDateString('en-US', {
     month: 'short',
@@ -36,9 +51,17 @@ export default function ThreadCard({ post }: ThreadCardProps) {
     ? JSON.parse(post.tags || '[]')
     : [];
 
-  // Extended PostData property check for Cloudinary thumbnails
-  const imageUrl = (post as PostData & { image?: string; coverImage?: string }).image ||
-    (post as PostData & { coverImage?: string }).coverImage;
+  const imageUrl = extendedPost.image || extendedPost.coverImage;
+  const bodySource =
+    extendedPost.contentHtml ||
+    extendedPost.rawMarkdown ||
+    extendedPost.content ||
+    post.description ||
+    post.title;
+  const minutes =
+    extendedPost.readingTime && extendedPost.readingTime > 0
+      ? extendedPost.readingTime
+      : readTime(bodySource);
 
   return (
     <article className="group py-6 px-3 hover:bg-surface/80 -mx-3 rounded-2xl transition-all duration-200">
@@ -73,7 +96,7 @@ export default function ThreadCard({ post }: ThreadCardProps) {
             <span>·</span>
             <time dateTime={post.date}>{dateLabel}</time>
             <span>·</span>
-            <span className="font-mono">{readTime(post.description || post.title)} min read</span>
+            <span className="font-mono">{minutes} min read</span>
           </div>
 
           {/* Title */}
