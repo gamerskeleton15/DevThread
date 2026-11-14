@@ -4,25 +4,36 @@ import { getSortedPostsData, PostData } from '@/lib/posts';
 import AdSlot from '@/components/AdSlot';
 import ThreadCard from '@/components/ThreadCard';
 
-export const metadata: Metadata = {
-  title: 'DevThread - All threads',
-  description:
-    'Browse every thread on DevThread: practical engineering writing from working backend, platform, and ML practitioners.',
-  openGraph: {
-    title: 'DevThread - All threads',
-    description: 'Browse every thread on DevThread from working engineers.',
-    type: 'website',
-    siteName: 'DevThread',
-  },
-};
+interface BlogPageProps {
+  searchParams: Promise<{ category?: string }>;
+}
+
+export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
+  const { category } = await searchParams;
+
+  return {
+    title: category ? `${category} threads - DevThread` : 'DevThread - All threads',
+    description:
+      'Browse every thread on DevThread: practical engineering writing from working backend, platform, and ML practitioners.',
+    alternates: {
+      canonical: 'https://devthread.site/blog',
+    },
+    robots: category
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
+    openGraph: {
+      title: 'DevThread - All threads',
+      description: 'Browse every thread on DevThread from working engineers.',
+      url: 'https://devthread.site/blog',
+      type: 'website',
+      siteName: 'DevThread',
+    },
+  };
+}
 
 /** Distinct categories across all threads. */
 function categories(posts: PostData[]): string[] {
   return Array.from(new Set(posts.map((p) => p.category))).sort();
-}
-
-interface BlogPageProps {
-  searchParams: Promise<{ category?: string }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
