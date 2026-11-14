@@ -1,29 +1,44 @@
 import Link from 'next/link';
-import { getPostData, getAllPostIds } from '@/lib/posts';
+import type { Metadata } from 'next';
+import { getPostData } from '@/lib/posts';
 import AdSlot from '@/components/AdSlot';
 import AuthorBox from '@/components/AuthorBox';
 import KeyTakeaway from '@/components/KeyTakeaway';
 
-export async function generateStaticParams() {
-  return await getAllPostIds();
-}
+export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const postData = await getPostData(slug);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://devthread.site';
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://devthread.site';
+  const postUrl = `${siteUrl}/blog/${slug}`;
+  const ogImage = postData.coverImage
+    ? postData.coverImage.startsWith('http')
+      ? postData.coverImage
+      : `${siteUrl}${postData.coverImage}`
+    : `${siteUrl}/devthread-icon.svg`;
+
   return {
     title: `${postData.title} - DevThread`,
     description: postData.description,
+    alternates: {
+      canonical: postUrl,
+    },
     openGraph: {
       title: postData.title,
       description: postData.description,
+      url: postUrl,
       type: 'article',
       publishedTime: postData.date,
       authors: [postData.author],
       images: [
         {
-          url: postData.coverImage,
+          url: ogImage,
           width: 800,
           height: 600,
           alt: postData.title,
@@ -34,43 +49,58 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title: postData.title,
       description: postData.description,
-      images: [postData.coverImage],
-    },
-    // JSON-LD Article schema — gives Google rich-snippet eligibility for the
-    // headline, date, author and main image.
-    other: {
-      'application/ld+json': JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: postData.title,
-        description: postData.description,
-        author: {
-          '@type': 'Person',
-          name: postData.author,
-        },
-        datePublished: postData.date,
-        publisher: {
-          '@type': 'Organization',
-          name: 'DevThread',
-          url: siteUrl,
-          logo: {
-            '@type': 'ImageObject',
-            url: `${siteUrl}/devthread-icon.svg`,
-          },
-        },
-        mainEntityOfPage: `${siteUrl}/blog/${slug}`,
-        image: postData.coverImage,
-      }),
+      images: [ogImage],
     },
   };
 }
 
-export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BlogPost({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const postData = await getPostData(slug);
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://devthread.site';
+  const postUrl = `${siteUrl}/blog/${slug}`;
+  const ogImage = postData.coverImage
+    ? postData.coverImage.startsWith('http')
+      ? postData.coverImage
+      : `${siteUrl}${postData.coverImage}`
+    : `${siteUrl}/devthread-icon.svg`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: postData.title,
+    description: postData.description,
+    author: {
+      '@type': 'Person',
+      name: postData.author,
+      url: `${siteUrl}/about`,
+    },
+    datePublished: postData.date,
+    publisher: {
+      '@type': 'Organization',
+      name: 'DevThread',
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/devthread-icon.svg`,
+      },
+    },
+    mainEntityOfPage: postUrl,
+    image: ogImage,
+  };
 
   return (
     <article className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link
           href="/blog"
