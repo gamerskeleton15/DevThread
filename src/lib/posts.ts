@@ -62,11 +62,16 @@ function readMdxPostData(): PostData[] {
       const fullPath = path.join(postsDirectory, fileName);
       const fileContents = fs.readFileSync(fullPath, 'utf8');
       const matterResult = matter(fileContents);
+      const frontmatter = matterResult.data as Omit<
+        PostData,
+        'id' | 'slug' | 'rawMarkdown'
+      > & { slug?: string };
+
       return {
+        ...frontmatter,
         id,
-        slug: id,
+        slug: frontmatter.slug || id,
         rawMarkdown: matterResult.content,
-        ...(matterResult.data as Omit<PostData, 'id' | 'rawMarkdown'>),
       };
     });
 }
@@ -156,12 +161,18 @@ export async function getPostData(slug: string): Promise<PostContent> {
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const matterResult = matter(fileContents);
     const processedContent = await remark().use(html).process(matterResult.content);
+    const frontmatter = matterResult.data as Omit<
+      PostContent,
+      'id' | 'slug' | 'contentHtml' | 'isUserContent' | 'takeaway' | 'rawMarkdown'
+    > & { id?: string; takeaway?: string };
+
     return {
+      ...frontmatter,
+      id: frontmatter.id || slug,
       slug,
       contentHtml: sanitizePostHtml(processedContent.toString()),
-      takeaway: matterResult.data.takeaway,
+      takeaway: frontmatter.takeaway,
       rawMarkdown: matterResult.content,
-      ...(matterResult.data as Omit<PostContent, 'slug' | 'contentHtml' | 'isUserContent' | 'takeaway'>),
     };
   }
 
