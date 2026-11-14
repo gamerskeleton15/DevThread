@@ -5,6 +5,8 @@ import NewsletterForm from '@/components/NewsletterForm';
 import AdSlot from '@/components/AdSlot';
 import ThreadCard from '@/components/ThreadCard';
 
+export const dynamic = 'force-dynamic';
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://devthread.site';
 
