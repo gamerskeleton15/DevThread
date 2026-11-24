@@ -42,172 +42,106 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  <url>
-    <loc>https://devthread.site/blog/ai-in-healthcare</loc>
-    <lastmod>2026-07-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/best-programming-languages-2026</loc>
-    <lastmod>2026-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/cloud-computing-essentials</loc>
-    <lastmod>2026-07-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/cybersecurity-best-practices-2026</loc>
-    <lastmod>2026-08-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/first-machine-learning-model</loc>
-    <lastmod>2026-07-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/getting-started-computer-vision-pytorch</loc>
-    <lastmod>2026-08-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/getting-started-with-ai</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/machine-learning-projects</loc>
-    <lastmod>2026-08-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/mastering-typescript-in-2026</loc>
-    <lastmod>2026-06-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/nlp-projects-ml-portfolio</loc>
-    <lastmod>2026-09-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/python-vs-sql-data-science</loc>
-    <lastmod>2026-06-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/react-vs-vue-2026</loc>
-    <lastmod>2026-09-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/smartphone-review-2026</loc>
-    <lastmod>2026-07-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/understanding-neural-networks</loc>
-    <lastmod>2026-08-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://devthread.site/blog/web-development-trends-2026</loc>
-    <lastmod>2026-06-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-     <loc>https://devthread.site/blog/iphone-18-pro-and-pro-max-price-in-pakistan-2026-pta-tax-specs-and-should-you-buy</loc>
-    <lastmod>2026-07-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-     <loc>https://devthread.site/blog/cm-punjab-e-bike-scheme-2026-eligibility-how-to-apply-and-latest-update</loc>
-    <lastmod>2026-07-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-     <loc>https://devthread.site/blog/15-git-commands-every-developer-should-know-beyond-add-commit-push</loc>
-    <lastmod>2026-07-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
    <url>
-     <loc>https://devthread.site/blog/anatomy-of-a-dollar636b-heist-how-social-engineering-broke-binance</loc>
+    <loc>https://devthread.site/blog/netlify-vs-vercel-building-a-zero-cost-nextjs-stack-in-2026</loc>
     <lastmod>2026-07-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
    <url>
-     <loc>https://devthread.site/blog/how-to-apply-for-the-pm-pakistan-chromebook-scheme-eligibility-and-registration</loc>
+    <loc>https://devthread.site/blog/the-rise-of-llmops-why-prompt-engineering-is-the-highest-paid-tech-skill-in-2026</loc>
     <lastmod>2026-07-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
    <url>
-     <loc>https://devthread.site/blog/netlify-vs-vercel-building-a-zero-cost-nextjs-stack-in-2026</loc>
+    <loc>https://devthread.site/blog/ai-agents-and-ot-hacks-analyzing-the-november-2026-cyberattack-wave</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
    <url>
-     <loc>https://devthread.site/blog/the-rise-of-llmops-why-prompt-engineering-is-the-highest-paid-tech-skill-in-2026</loc>
+    <loc>https://devthread.site/blog/how-to-build-a-custom-instagram-auto-responder-using-self-hosted-n8n-and-meta-webhooks</loc>
     <lastmod>2026-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-     <url>
-     <loc>https://devthread.site/blog/how-to-build-a-custom-instagram-auto-responder-using-self-hosted-n8n-and-meta-webhooks</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-     <url>
-     <loc>https://devthread.site/blog/supabase-vs-firebase-the-ultimate-postgresql-migration-guide-for-nextjs-developers</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-     <url>
-     <loc>https://devthread.site/blog/optimizing-react-server-components-and-tailwind-css-in-nextjs-16</loc>
-    <lastmod>2026-07-11</lastmod>
+   <url>
+    <loc>https://devthread.site/blog/supabase-vs-firebase-the-ultimate-postgresql-migration-guide-for-nextjs-developers</loc>
+    <lastmod>2026-07-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
    <url>
-    <loc>https://devthread.site/blog/nvidia-without-jensen-huang-what-happened-what-the-earnings-show-and-what-it-means-for-ai</loc>
-    <lastmod>2026-11-22</lastmod>
+    <loc>https://devthread.site/blog/optimizing-react-server-components-and-tailwind-css-in-nextjs-16</loc>
+    <lastmod>2026-07-09</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <priority>0.9</priority>
   </url>
    <url>
     <loc>https://devthread.site/blog/ghostmap-the-android-flaw-that-can-trap-your-phone-in-a-crash-loop-and-how-to-protect-yourself</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <priority>0.9</priority>
   </url>
    <url>
-    <loc>https://devthread.site/blog/black-friday-2026-tech-buying-guide-whats-actually-worth-buying-and-what-to-skip</loc>
-    <lastmod>2026-11-22</lastmod>
+    <loc>https://devthread.site/blog/evaluating-llm-outputs-automatically-building-a-deterministic-eval-pipeline-with-pytest</loc>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/building-fault-tolerant-ai-agents-in-python-structured-outputs-retries-and-token-budgets</loc>
+    <lastmod>2026-07-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/hybrid-search-in-postgresql-combining-pgvector-hnsw-indexes-with-full-text-tsvector</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/securing-self-hosted-n8n-webhooks-behind-cloudflare-tunnel-with-hmac-signature-verification</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/nextjs-app-router-caching-and-revalidation-explained-fixing-stale-data-in-production</loc>
+    <lastmod>2026-07-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/securing-nodejs-and-nextjs-apis-against-ssrf-broken-auth-and-rate-limit-bypass</loc>
+    <lastmod>2026-07-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/fine-tuning-vs-rag-vs-prompt-caching-cost-and-latency-benchmarks-for-production-llms</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/self-hosting-docker-workloads-on-a-dollar5-vps-reverse-proxy-auto-ssl-memory-limits-and-backups</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/zero-downtime-postgresql-schema-migrations-adding-indexes-columns-and-constraints-safely</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://devthread.site/blog/postgresql-connection-pooling-in-serverless-nextjs-supavisor-vs-pgbouncer-upstash-redis</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>
